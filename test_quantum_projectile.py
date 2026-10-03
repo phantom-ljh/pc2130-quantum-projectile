@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
+import quantum_projectile as qp
 from quantum_projectile import (
     Params,
     classical_center,
@@ -165,3 +166,75 @@ def test_all_required_outputs_smoke(tmp_path):
         "classical_limit.png",
     }
     assert all(Path(path).is_file() and Path(path).stat().st_size > 0 for path in paths)
+
+
+def test_main_accepts_explicit_arguments(monkeypatch, tmp_path):
+    """PowerShell-style arguments can also be supplied directly from Python/Jupyter."""
+
+    captured = {}
+
+    def fake_run_all(p, outdir, tmax, frames, fps, smoke):
+        captured.update(
+            p=p,
+            outdir=outdir,
+            tmax=tmax,
+            frames=frames,
+            fps=fps,
+            smoke=smoke,
+        )
+        return ["sentinel"]
+
+    monkeypatch.setattr(qp, "run_all", fake_run_all)
+    result = qp.main(
+        [
+            "--outdir",
+            str(tmp_path),
+            "--m",
+            "7.0",
+            "--g",
+            "1.5",
+            "--sigma0",
+            "0.8",
+            "--frames",
+            "12",
+            "--smoke",
+        ]
+    )
+
+    assert result == ["sentinel"]
+    assert captured["p"].m == 7.0
+    assert captured["p"].g == 1.5
+    assert captured["p"].sigma0 == 0.8
+    assert captured["frames"] == 12
+    assert captured["smoke"] is True
+
+
+def test_main_ignores_jupyter_kernel_file_argument(monkeypatch):
+    """The ipykernel '-f kernel.json' argument must not reach argparse."""
+
+    captured = {}
+
+    def fake_run_all(p, outdir, tmax, frames, fps, smoke):
+        captured.update(p=p, outdir=outdir, smoke=smoke)
+        return ["jupyter-ok"]
+
+    monkeypatch.setattr(qp, "run_all", fake_run_all)
+    monkeypatch.setattr(
+        qp.sys,
+        "argv",
+        [
+            "ipykernel_launcher.py",
+            "-f",
+            r"C:\\Users\\student\\AppData\\Roaming\\jupyter\\runtime\\kernel.json",
+            "--m",
+            "4.0",
+            "--smoke",
+        ],
+    )
+    monkeypatch.setitem(qp.sys.modules, "ipykernel", object())
+
+    result = qp.main()
+
+    assert result == ["jupyter-ok"]
+    assert captured["p"].m == 4.0
+    assert captured["smoke"] is True
