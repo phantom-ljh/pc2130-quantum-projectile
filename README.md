@@ -62,18 +62,11 @@ The energy expectation is
 
 The sign derivation and viva explanations are in [VIVA_NOTES.md](VIVA_NOTES.md).
 
-## Run and verify
+## Run
 
 ```bash
 python -m pip install -r requirements.txt
-python -m pytest -q
 python quantum_projectile.py --outdir outputs
-```
-
-For a quick, low-resolution generation of every required output:
-
-```bash
-python quantum_projectile.py --outdir smoke_outputs --smoke
 ```
 
 ### Jupyter Notebook
@@ -94,7 +87,6 @@ qp.main([
     "--m", "5",
     "--g", "1",
     "--sigma0", "0.6",
-    "--smoke",
 ])
 ```
 
@@ -103,14 +95,14 @@ functions directly:
 
 ```python
 p = qp.Params(m=5.0)
-qp.run_all(p, outdir="notebook_outputs", smoke=True)
+qp.run_all(p, outdir="notebook_outputs")
 ```
 
 Only Jupyter's private `-f <kernel.json>` pair is filtered. Unknown user
 arguments are still rejected, so misspelled scientific parameters do not fail
 silently.
 
-Both commands generate:
+The program generates:
 
 - `density_xz.gif`: the \(y=0\) probability density;
 - `real_psi_xz.gif`: the \(y=0\) real part of the wavefunction;
