@@ -12,10 +12,6 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 import numpy as np
 
-try:
-    trapezoid = np.trapezoid
-except AttributeError:  # NumPy 1.26
-    trapezoid = np.trapz
 
 
 @dataclass(frozen=True)
@@ -55,17 +51,6 @@ def classical_center(t, p):
 
     t = np.asarray(t)
     return p.v0 * t, np.zeros_like(t, dtype=float), p.z0 - 0.5 * p.g * t**2
-
-
-def momentum_expectation(t, p):
-    """Ehrenfest momentum expectation values (px, py, pz)."""
-
-    t = np.asarray(t)
-    return (
-        np.full_like(t, p.p0, dtype=float),
-        np.zeros_like(t, dtype=float),
-        -p.m * p.g * t,
-    )
 
 
 def free_psi(x, y, z, t, p):
@@ -110,30 +95,6 @@ def density(x, y, z, t, p):
     return (2 * np.pi * s**2) ** (-1.5) * np.exp(
         -radius_squared / (2 * s**2)
     )
-
-
-def energy_expectation(p):
-    """Conserved expectation value of kinetic plus potential energy."""
-
-    translational = p.p0**2 / (2 * p.m)
-    localization = 3 * p.hbar**2 / (8 * p.m * p.sigma0**2)
-    gravitational = p.m * p.g * p.z0
-    return translational + localization + gravitational
-
-
-def numerical_normalization(t, p, n=101, nsigma=6.0):
-    """Integrate |psi|^2 over a finite box centered on the packet."""
-
-    s = float(sigma_t(t, p))
-    xc, _, zc = [float(value) for value in classical_center(t, p)]
-    x = np.linspace(xc - nsigma * s, xc + nsigma * s, n)
-    y = np.linspace(-nsigma * s, nsigma * s, n)
-    z = np.linspace(zc - nsigma * s, zc + nsigma * s, n)
-    X, Y, Z = np.meshgrid(x, y, z, indexing="ij")
-    rho = density(X, Y, Z, t, p)
-    integral_z = trapezoid(rho, z, axis=2)
-    integral_yz = trapezoid(integral_z, y, axis=1)
-    return float(trapezoid(integral_yz, x, axis=0))
 
 
 def make_xz_grid(p, tmax, nx=300, nz=240):
@@ -277,30 +238,26 @@ def save_classical_limit_figure(
     return outpath
 
 
-def run_all(p, outdir="outputs", tmax=2.4, frames=100, fps=25, smoke=False):
-    """Generate every required animation and figure; return their paths."""
+def run_all(p, outdir="outputs", tmax=2.4, frames=100, fps=25):
+    """Generate the animations and figures required for the assignment."""
 
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
-    nx, nz, dpi = (80, 64, 90) if smoke else (300, 240, 180)
-    if smoke:
-        frames = min(frames, 6)
 
     print("Parameters:", p)
-    print("<E> =", energy_expectation(p))
-    print("Norm t=0 =", numerical_normalization(0, p, n=61))
-    print("Norm t=tmax =", numerical_normalization(tmax, p, n=61))
     paths = [
         animate_density_xz(
-            p, out / "density_xz.gif", tmax, frames, fps, nx=nx, nz=nz
+            p, out / "density_xz.gif", tmax, frames, fps
         ),
         animate_real_psi_xz(
-            p, out / "real_psi_xz.gif", tmax, frames, fps, nx=nx, nz=nz
+            p, out / "real_psi_xz.gif", tmax, frames, fps
         ),
         save_trajectory_spreading_figure(
-            p, out / "trajectory_spreading.png", tmax, dpi=dpi
+            p, out / "trajectory_spreading.png", tmax
         ),
-        save_classical_limit_figure(p, out / "classical_limit.png", tmax, dpi=dpi),
+        save_classical_limit_figure(
+            p, out / "classical_limit.png", tmax
+        ),
     ]
     for path in paths:
         print("created", path)
@@ -336,7 +293,6 @@ def main(argv=None):
     parser.add_argument("--tmax", type=float, default=2.4)
     parser.add_argument("--frames", type=int, default=100)
     parser.add_argument("--fps", type=int, default=25)
-    parser.add_argument("--smoke", action="store_true", help="quick low-resolution run")
     parser.add_argument("--m", type=float, default=2.0)
     parser.add_argument("--g", type=float, default=1.0)
     parser.add_argument("--sigma0", type=float, default=0.6)
@@ -353,7 +309,6 @@ def main(argv=None):
         args.tmax,
         args.frames,
         args.fps,
-        args.smoke,
     )
 
 
