@@ -46,8 +46,7 @@ The density is a product of three normalized normal distributions:
 \]
 
 Each one-dimensional integral is one, so the three-dimensional integral is
-one for every time. `numerical_normalization` checks the same statement on a
-large finite box.
+one for every time.
 
 ## 3. Energy expectation
 
@@ -67,8 +66,7 @@ Because the initial Gaussian has \(\langle z\rangle=z_0\),
 +\frac{3\hbar^2}{8m\sigma_0^2}+mgz_0.
 \]
 
-The Hamiltonian is time independent, so this expectation is conserved. The
-tests also evaluate the kinetic gradient and potential integral numerically.
+The Hamiltonian is time independent, so this expectation is conserved.
 
 ## 4. Ehrenfest motion
 
