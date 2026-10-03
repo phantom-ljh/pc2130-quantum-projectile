@@ -3,6 +3,7 @@
 from dataclasses import dataclass, replace
 from pathlib import Path
 import argparse
+import sys
 
 import matplotlib
 
@@ -306,7 +307,30 @@ def run_all(p, outdir="outputs", tmax=2.4, frames=100, fps=25, smoke=False):
     return paths
 
 
-def main():
+def _clean_cli_args(argv, *, ipykernel_running=None):
+    """Remove Jupyter's private kernel arguments without hiding real CLI mistakes."""
+
+    args = list(argv)
+    if ipykernel_running is None:
+        ipykernel_running = "ipykernel" in sys.modules
+    if not ipykernel_running:
+        return args
+
+    cleaned = []
+    i = 0
+    while i < len(args):
+        if args[i] == "-f" and i + 1 < len(args):
+            # Jupyter launches kernels as: ipykernel_launcher.py -f <kernel.json>.
+            i += 2
+            continue
+        cleaned.append(args[i])
+        i += 1
+    return cleaned
+
+
+def main(argv=None):
+    """Command-line entry point that also works when called inside Jupyter."""
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--outdir", default="outputs")
     parser.add_argument("--tmax", type=float, default=2.4)
@@ -319,9 +343,18 @@ def main():
     parser.add_argument("--z0", type=float, default=3.0)
     parser.add_argument("--v0", type=float, default=2.0)
     parser.add_argument("--hbar", type=float, default=1.0)
-    args = parser.parse_args()
+
+    raw_args = sys.argv[1:] if argv is None else argv
+    args = parser.parse_args(_clean_cli_args(raw_args))
     params = Params(args.hbar, args.m, args.g, args.sigma0, args.z0, args.v0)
-    run_all(params, args.outdir, args.tmax, args.frames, args.fps, args.smoke)
+    return run_all(
+        params,
+        args.outdir,
+        args.tmax,
+        args.frames,
+        args.fps,
+        args.smoke,
+    )
 
 
 if __name__ == "__main__":
