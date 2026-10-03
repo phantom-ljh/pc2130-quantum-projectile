@@ -48,12 +48,6 @@ Energy:
           + 3 hbar^2/(8 m sigma0^2)
           + m g z0.
 
-Code/tests:
-- test_initial_state_matches_assignment
-- test_normalization_numerically
-- test_energy_formula
-- test_energy_formula_against_numerical_quadrature
-
 ## (d) Time evolution
 
 The exact accelerating-frame result is
@@ -70,14 +64,9 @@ For the assigned Gaussian, the code evaluates this analytically through:
 Key width:
     sigma(t)=sigma0 sqrt[1+(hbar t/(2m sigma0^2))^2].
 
-Tests:
-- test_exact_accelerating_frame_transformation
-- test_solution_satisfies_schrodinger_equation_and_phase_signs
-- test_density_equals_abs_psi_squared
-
 ## (e) Ehrenfest theorem
 
-The code/tests verify
+The analytical result used by the code is
 
     <x> = v0 t
     <y> = 0
@@ -93,10 +82,6 @@ These obey
     d<x>/dt = <px>/m
 and
     d<pz>/dt = -m g = <-dV/dz>.
-
-Tests:
-- test_ehrenfest_trajectory_and_momentum
-- test_phase_gradient_at_packet_center_matches_ehrenfest_momentum
 
 ## (f) Animations and physical interpretation
 
@@ -125,7 +110,6 @@ Report (single PDF, maximum target length: 4 pages as stated in the course intro
 
 Code:
 - submit the Python code separately to Canvas
-- before submission run: python -m pytest -q
 - generate final outputs with: python quantum_projectile.py --outdir outputs
 
 Viva:
