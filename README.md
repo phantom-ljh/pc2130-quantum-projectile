@@ -76,6 +76,40 @@ For a quick, low-resolution generation of every required output:
 python quantum_projectile.py --outdir smoke_outputs --smoke
 ```
 
+### Jupyter Notebook
+
+The same file can be imported and run inside Jupyter without the
+`ipykernel_launcher.py -f kernel.json` argument causing an `argparse`
+error:
+
+```python
+import quantum_projectile as qp
+
+# Use the default parameters.
+qp.main()
+
+# Or pass the same options used in PowerShell.
+qp.main([
+    "--outdir", "notebook_outputs",
+    "--m", "5",
+    "--g", "1",
+    "--sigma0", "0.6",
+    "--smoke",
+])
+```
+
+You can also bypass the command-line interface and call the physics/plotting
+functions directly:
+
+```python
+p = qp.Params(m=5.0)
+qp.run_all(p, outdir="notebook_outputs", smoke=True)
+```
+
+Only Jupyter's private `-f <kernel.json>` pair is filtered. Unknown user
+arguments are still rejected, so misspelled scientific parameters do not fail
+silently.
+
 Both commands generate:
 
 - `density_xz.gif`: the \(y=0\) probability density;
